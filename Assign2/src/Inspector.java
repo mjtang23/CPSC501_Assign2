@@ -1,4 +1,6 @@
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 
@@ -11,34 +13,56 @@ public class Inspector {
 		Class superClass = ObjClass.getSuperclass();
 		Class interfaces[] = ObjClass.getInterfaces();
 		Method mArray[]= ObjClass.getDeclaredMethods();
-		int i = 0;
+		Field fields[] = ObjClass.getDeclaredFields();
 		
-		System.out.println("inside inspector: " + ObjClass + " (recursive = "+recursive+")");
-		System.out.println("Super Class: " + superClass);
+		ObjectClass(ObjClass, recursive);
+		ObjectClass(superClass);
+		interfaceCheck(interfaces);
+		methods(mArray, fields);   
+			    
+			   }
+		
+			
+	
+	
+	public void ObjectClass(Class objClass, boolean recursive){
+		System.out.println("inside inspector: " + objClass + " (recursive = "+recursive+")");
+	}
+	
+	public void ObjectClass(Class objClass){
+		System.out.println("Super Class: " + objClass);
+	}
+	
+	public void interfaceCheck(Class inter[]){
+		int a = 0;
 		System.out.print("Implemented interfaces: " );
-		if(interfaces.length == 0){
+		if(inter.length == 0){
 			System.out.println("None");
 		}else{
-		   while(interfaces.length > (i+1)){
-		      System.out.print(interfaces[i]+ "," + " " );
-		      i++;
+		   while(inter.length > (a+1)){
+		      System.out.print(inter[a]+ "," + " " );
+		      a++;
 		   }
-		   System.out.println(interfaces[i]);
+		   System.out.println(inter[a]);
 		}
-		System.out.print("Methods: \n" );
+	}
+	
+	public void methods(Method mArray[], Field fields[]){
+		int i = 0;
+
+		System.out.print("Methods \n" );
 		if(mArray.length == 0){
 			System.out.println("None");
 		}else{
 			
 			   while(mArray.length > i){
-//				  System.out.print("Name: ");
 			      System.out.println("Method Name: "+ mArray[i].getName());
 			      Class mExceptions[] = mArray[i].getExceptionTypes();
 			      Class params[] = mArray[i].getParameterTypes();
 			      for(int x =0; x < mExceptions.length; x++){
 			    	  System.out.println("\t Exception: "+ mExceptions[x]);
 			      }
-			      System.out.print("\t Parameters:");
+			      System.out.print("Parameters:");
 			      if(params.length == 0){
 			    	  System.out.println(" None required");
 			      }
@@ -49,16 +73,25 @@ public class Inspector {
 				    	  System.out.print(params[y]+ " ,");
 				    	  y++;
 				      }
-				      System.out.println(params[y] + ")\n");
+				      System.out.println(params[y] + ")");
 			      }
+			      System.out.println("Return type: " + mArray[i].getReturnType());
+			      int modCode = mArray[i].getModifiers();
+			      String modifier = Modifier.toString(modCode);
+			      System.out.println("Modifier: " + modifier);
 			      
-			     i++;
+			      System.out.println("Fields: ");
+			      for(int z =0; z < fields.length; z++){
+			    	  System.out.println("\tName: " + fields[z].getName());
+			    	  System.out.println("\tType: " + fields[z].getType());
+			    	  modCode = fields[z].getModifiers();
+			    	  modifier = Modifier.toString(modCode);
+			    	  System.out.println("\tModifier: " + modifier + "\n");
+			      }
+			      i++;
 			   }
-		
-			}
+	    }
 	}
-	
-	
 	
 
 }

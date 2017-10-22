@@ -1,3 +1,4 @@
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -14,20 +15,16 @@ public class Inspector {
 		Class interfaces[] = ObjClass.getInterfaces();
 		Method mArray[]= ObjClass.getDeclaredMethods();
 		Field fields[] = ObjClass.getDeclaredFields();
+		Constructor constructors[] = ObjClass.getDeclaredConstructors();
 		
-		ObjectClass(ObjClass, recursive);
+		System.out.println("inside inspector: " + ObjClass + " (recursive = "+recursive+")");
 		ObjectClass(superClass);
 		interfaceCheck(interfaces);
-		methods(mArray, fields);   
+		methods(mArray, fields, constructors);   
+		printFields(fields);
+		printConstructors(constructors);
 			    
 			   }
-		
-			
-	
-	
-	public void ObjectClass(Class objClass, boolean recursive){
-		System.out.println("inside inspector: " + objClass + " (recursive = "+recursive+")");
-	}
 	
 	public void ObjectClass(Class objClass){
 		System.out.println("Super Class: " + objClass);
@@ -47,7 +44,7 @@ public class Inspector {
 		}
 	}
 	
-	public void methods(Method mArray[], Field fields[]){
+	public void methods(Method mArray[], Field fields[], Constructor construct[]){
 		int i = 0;
 
 		System.out.print("Methods \n" );
@@ -76,22 +73,39 @@ public class Inspector {
 				      System.out.println(params[y] + ")");
 			      }
 			      System.out.println("Return type: " + mArray[i].getReturnType());
-			      int modCode = mArray[i].getModifiers();
-			      String modifier = Modifier.toString(modCode);
-			      System.out.println("Modifier: " + modifier);
-			      
-			      System.out.println("Fields: ");
-			      for(int z =0; z < fields.length; z++){
-			    	  System.out.println("\tName: " + fields[z].getName());
-			    	  System.out.println("\tType: " + fields[z].getType());
-			    	  modCode = fields[z].getModifiers();
-			    	  modifier = Modifier.toString(modCode);
-			    	  System.out.println("\tModifier: " + modifier + "\n");
-			      }
+			      System.out.println("Method Modifier: " + printModifier(mArray[i]));
 			      i++;
 			   }
 	    }
 	}
 	
+	public void printFields(Field fields[]){
+	      System.out.println("Fields: ");
+	      for(int z =0; z < fields.length; z++){
+	    	  System.out.println("\tName: " + fields[z].getName());
+	    	  System.out.println("\tType: " + fields[z].getType());
+	    	  System.out.println("\tField Modifier: " + printModifier(fields[z]) + "\n");
+	      }
+	}
+	
+	public void printConstructors(Constructor construct[]){
+		System.out.println("Constructors:");
+	      for(int x =0; x < construct.length; x++){
+	    	  System.out.println(" " + construct[x]);
+	      }
+	}
+	
+	public String printModifier(Field fMod){
+		int modCode = fMod.getModifiers();
+  	    String modifier = Modifier.toString(modCode);
+		return modifier;
+	}
+	
+    public String printModifier(Method mMod){
+	   int modCode = mMod.getModifiers();
+	   String modifier = Modifier.toString(modCode);
+	   return modifier;
+    }
+    
 
 }

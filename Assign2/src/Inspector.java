@@ -11,42 +11,58 @@ public class Inspector {
 		
 		Vector objectsToInspect = new Vector();
 		Class ObjClass = obj.getClass();
-		Class superClass = ObjClass.getSuperclass();
-		Class interfaces[] = ObjClass.getInterfaces();
-		Method mArray[]= ObjClass.getDeclaredMethods();
 		Field fields[] = ObjClass.getDeclaredFields();
 		Constructor constructors[] = ObjClass.getDeclaredConstructors();
 		
-		System.out.println("inside inspector: " + ObjClass + " (recursive = "+recursive+")");
-		ObjectClass(superClass);
-		interfaceCheck(interfaces);
-		methods(mArray, fields, constructors);   
+		
+		printObjectClass(ObjClass, recursive);
+		printSuperClass(ObjClass);
+		printInterface(ObjClass);
+		printMethods(ObjClass, fields, constructors);   
 		printFields(fields);
-		printConstructors(constructors);
+		printConstructors(ObjClass);
 			    
 			   }
-	
-	public void ObjectClass(Class objClass){
-		System.out.println("Super Class: " + objClass);
+	public void printObjectClass(Class objClass, boolean recurse){
+		
+		System.out.println("inside inspector: " + getClass(objClass) + " (recursive = "+recurse+")");
+	}
+
+	protected Class getClass(Object obj){
+		return obj.getClass();
 	}
 	
-	public void interfaceCheck(Class inter[]){
+	
+	public void printSuperClass(Class objClass){
+		System.out.println("Super Class: " + getSuperClass(getClass(objClass)));
+	}
+	
+	protected Class getSuperClass(Class objClass){
+		return objClass.getSuperclass();
+	}
+	
+	public void printInterface(Class objClass){
 		int a = 0;
+		Class interfaces[] = getInterfaces(objClass);
 		System.out.print("Implemented interfaces: " );
-		if(inter.length == 0){
+		if(interfaces.length == 0){
 			System.out.println("None");
 		}else{
-		   while(inter.length > (a+1)){
-		      System.out.print(inter[a]+ "," + " " );
+		   while(interfaces.length > (a+1)){
+		      System.out.print(interfaces[a]+ "," + " " );
 		      a++;
 		   }
-		   System.out.println(inter[a]);
+		   System.out.println(interfaces[a]);
 		}
 	}
 	
-	public void methods(Method mArray[], Field fields[], Constructor construct[]){
+	protected Class[]getInterfaces(Class obj){
+		return obj.getInterfaces();
+	}
+	
+	public void printMethods(Class objClass, Field fields[], Constructor construct[]){
 		int i = 0;
-
+        Method [] mArray = getMethodArray(objClass);
 		System.out.print("Methods \n" );
 		if(mArray.length == 0){
 			System.out.println("None");
@@ -73,10 +89,15 @@ public class Inspector {
 				      System.out.println(params[y] + ")");
 			      }
 			      System.out.println("Return type: " + mArray[i].getReturnType());
-			      System.out.println("Method Modifier: " + printModifier(mArray[i]));
+			      System.out.println("Method Modifier: " + printModifier(mArray[i] )+ "\n");
 			      i++;
 			   }
 	    }
+	}
+	
+	protected Method[] getMethodArray(Class objClass){
+		Method mArray[]= objClass.getDeclaredMethods();
+		return mArray;
 	}
 	
 	public void printFields(Field fields[]){
@@ -88,11 +109,16 @@ public class Inspector {
 	      }
 	}
 	
-	public void printConstructors(Constructor construct[]){
+	public void printConstructors(Class objClass){
+		Constructor construct[] = getConstructor(objClass);
 		System.out.println("Constructors:");
 	      for(int x =0; x < construct.length; x++){
 	    	  System.out.println(" " + construct[x]);
 	      }
+	}
+	
+	protected Constructor[] getConstructor(Class objClass){
+		return objClass.getDeclaredConstructors();
 	}
 	
 	public String printModifier(Field fMod){

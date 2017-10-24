@@ -9,8 +9,7 @@ public class Inspector {
 	
 	public void inspect(Object obj, boolean recursive){
 		
-		Vector objectsToInspect = new Vector();
-		Class ObjClass = obj.getClass();
+		Class ObjClass = getClass(obj);
 		Field fields[] = ObjClass.getDeclaredFields();
 		Constructor constructors[] = ObjClass.getDeclaredConstructors();
 		
@@ -18,8 +17,8 @@ public class Inspector {
 		printObjectClass(ObjClass, recursive);
 		printSuperClass(ObjClass);
 		printInterface(ObjClass);
-		printMethods(ObjClass, fields, constructors);   
-		printFields(fields);
+		printMethods(ObjClass);   
+		printFields(ObjClass);
 		printConstructors(ObjClass);
 			    
 			   }
@@ -60,7 +59,7 @@ public class Inspector {
 		return obj.getInterfaces();
 	}
 	
-	public void printMethods(Class objClass, Field fields[], Constructor construct[]){
+	public void printMethods(Class objClass){
 		int i = 0;
         Method [] mArray = getMethodArray(objClass);
 		System.out.print("Methods \n" );
@@ -100,13 +99,19 @@ public class Inspector {
 		return mArray;
 	}
 	
-	public void printFields(Field fields[]){
+	public void printFields(Class obj){
+		  Field [] fields = getFieldArray(obj);
 	      System.out.println("Fields: ");
 	      for(int z =0; z < fields.length; z++){
 	    	  System.out.println("\tName: " + fields[z].getName());
 	    	  System.out.println("\tType: " + fields[z].getType());
 	    	  System.out.println("\tField Modifier: " + printModifier(fields[z]) + "\n");
 	      }
+	}
+	
+	protected Field[] getFieldArray(Class objClass){
+		Field fArray[]= objClass.getDeclaredFields();
+		return fArray;
 	}
 	
 	public void printConstructors(Class objClass){

@@ -67,4 +67,11 @@ public class Assign2JUnitTests {
 		Class array[] = ObjClass.getInterfaces();
 		assertEquals(array.length, inspector.getInterfaces(ObjClass).length);
 	}
+	
+	@Test
+	public void testFields(){
+		Class ObjClass = A.getClass();
+		Field array[] = ObjClass.getDeclaredFields();
+		assertEquals(array.length, inspector.getFieldArray(ObjClass).length);
+	}
 }

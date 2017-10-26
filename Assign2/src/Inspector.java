@@ -13,15 +13,17 @@ public class Inspector {
 		Field fields[] = ObjClass.getDeclaredFields();
 		Constructor constructors[] = ObjClass.getDeclaredConstructors();
 		
+		   printObjectClass(ObjClass, recursive);
+		   printSuperClass(ObjClass, recursive);
+		   printInterface(ObjClass, recursive);
+		   printMethods(ObjClass, recursive);   
+		   printFields(ObjClass, recursive);
+		   printConstructors(ObjClass);
+		  
+
 		
-		printObjectClass(ObjClass, recursive);
-		printSuperClass(ObjClass, recursive);
-		printInterface(ObjClass);
-		printMethods(ObjClass);   
-		printFields(ObjClass);
-		printConstructors(ObjClass);
 			    
-			   }
+	}
 	public void printObjectClass(Class objClass, boolean recurse){
 		
 		System.out.println("inside inspector: " + objClass + " (recursive = "+recurse+")");
@@ -29,11 +31,9 @@ public class Inspector {
 
 	protected Class getClass(Object obj){
 		if(obj.getClass().isArray()){
-
 			Class temp = obj.getClass();
 			while(temp.getName().charAt(0) == '['){
-			  temp = temp.getComponentType();
-			  System.out.println(temp.getName());
+			   temp = temp.getComponentType();
 			  
 			}
 			return temp;
@@ -64,7 +64,8 @@ public class Inspector {
 			return;
 		}
 	}
-	public void printInterface(Class objClass){
+	
+	public void printInterface(Class objClass, Boolean recurse){
 		int a = 0;
 		Class interfaces[] = getInterfaces(objClass);
 		System.out.print("Implemented interfaces: " );
@@ -72,10 +73,13 @@ public class Inspector {
 			System.out.println("None");
 		}else{
 		   while(interfaces.length > (a+1)){
-		      System.out.print(interfaces[a].getClass()+ "," + " " );
+		      System.out.print(interfaces[a].getSimpleName()+ "," + " " );
 		      a++;
 		   }
 		   System.out.println(interfaces[a].getClass());
+		   if(getSClass(objClass) != null){
+			   printInterface(objClass.getSuperclass(), recurse);
+		   }
 		}
 	}
 	
@@ -83,45 +87,16 @@ public class Inspector {
 		return obj.getInterfaces();
 	}
 	
-	public void printMethods(Class objClass){
+	public void printMethods(Class objClass, Boolean recurse){
 		int i = 0;
         Method [] mArray = getMethodArray(objClass);
-		System.out.print("Methods \n" );
+		System.out.println("----Methods---- \n" );
 		if(mArray.length == 0){
 			System.out.println("None");
 		}else{
-			
-			   while(mArray.length > i){
-			      System.out.println("Method Name: "+ mArray[i].getName());
-			      Class mExceptions[] = mArray[i].getExceptionTypes();
-			      Class params[] = mArray[i].getParameterTypes();
-			      for(int x =0; x < mExceptions.length; x++){
-			    	  System.out.println("\t Exception: "+ mExceptions[x]);
-			      }
-			      System.out.print("Parameters:");
-			      if(params.length == 0){
-			    	  System.out.println(" None required");
-			      }
-			      else{
-			    	  System.out.print("(");
-			    	  int y = 0;
-				      while((y+1) < params.length){
-				    	  System.out.print(params[y]+ " ,");
-				    	  y++;
-				      }
-				      System.out.println(params[y] + ")");
-			      }
-			      if(mArray[i].getReturnType().isArray()){
-			    	 System.out.println( "Return Type: " + mArray[i].getClass());
-			      }else{
-			    	  System.out.println(mArray[i].getClass().isArray());
-			    	 System.out.println("Return type: " + mArray[i].getReturnType());
-			      }
-
-			      System.out.println("Method Modifier: " + printModifier(mArray[i])+ "\n");
-			      i++;
-			   }
-	    }
+			getMethods(mArray, objClass, recurse);
+		}
+	    
 	}
 	
 	
@@ -130,10 +105,52 @@ public class Inspector {
 		return mArray;
 	}
 	
-	public void printFields(Class obj){
+	public void getMethods(Method mArray[], Class obj, Boolean recurse){
+		int i = 0;
+		while(mArray.length > i){
+		      System.out.println("Method Name: "+ mArray[i].getName());
+		      Class mExceptions[] = mArray[i].getExceptionTypes();
+		      Class params[] = mArray[i].getParameterTypes();
+		      for(int x =0; x < mExceptions.length; x++){
+		    	  System.out.println("\t Exception: "+ mExceptions[x]);
+		      }
+		      System.out.print("Parameters:");
+		      if(params.length == 0){
+		    	  System.out.println(" None required");
+		      }
+		      else{
+		    	  System.out.print("(");
+		    	  int y = 0;
+		    	  
+			      while((y+1) < params.length){
+			    	  System.out.print(params[y]+ " ,");
+			    	  y++;
+			      }
+			      System.out.println(params[y] + ")");
+		      } 
+		      System.out.println("Return type: " + mArray[i].getReturnType());
+		      System.out.println("Method Modifier: " + printModifier(mArray[i])+ "\n");
+		      i++;
+		      
+		}
+		if(obj.getSuperclass()!= null){
+	    	  getMethods(getMethodArray(obj.getSuperclass()), obj.getSuperclass(), recurse);
+		}
+	}
+	
+	public void printFields(Class obj, Boolean recurse){
 		  Field [] fields = getFieldArray(obj);
 	      System.out.println("Fields: ");
-	      for(int z =0; z < fields.length; z++){
+	      if(fields.length == 0){
+	    	  System.out.println("No fields in this class");
+	      }else{
+	    	  getFields(fields, obj, recurse);
+	      }
+	      
+	}
+	
+	public void getFields(Field [] fields,Class obj, Boolean recurse){
+		for(int z =0; z < fields.length; z++){
 	    	  System.out.println("\tName: " + fields[z].getName());
 	    	  if(fields[z].getType().isArray()){
 			    	 System.out.println( "\tType: " + fields[z].getClass().getComponentType());
@@ -147,12 +164,17 @@ public class Inspector {
 	    		  
 	    	  }
 	      }
+		if(obj.getSuperclass() != null){
+			Field [] superFields = getFieldArray(obj.getSuperclass());
+			getFields(superFields, obj.getSuperclass(), recurse);
+		}
+		
 	}
-	
 	protected Field[] getFieldArray(Class objClass){
 		Field fArray[]= objClass.getDeclaredFields();
 		return fArray;
 	}
+	
 	
 	public void printConstructors(Class objClass){
 		Constructor construct[] = getConstructor(objClass);

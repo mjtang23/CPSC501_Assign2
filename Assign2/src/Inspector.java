@@ -6,7 +6,7 @@ import java.util.*;
 
 
 public class Inspector {
-	
+	//Main running code for assignment 2
 	public void inspect(Object obj, boolean recursive){
 		
 		Class ObjClass = getClass(obj);
@@ -24,11 +24,12 @@ public class Inspector {
 		
 			    
 	}
+	//The main inspector class that takes the input from the TestDriver
 	public void printObjectClass(Class objClass, boolean recurse){
 		
 		System.out.println("inside inspector: " + objClass + " (recursive = "+recurse+")");
 	}
-
+    // Returns the class that we explore further into
 	protected Class getClass(Object obj){
 		if(obj.getClass().isArray()){
 			Class temp = obj.getClass();
@@ -43,19 +44,20 @@ public class Inspector {
 		}
 	}
 	
-	
+	//prints the super class and iterates till it hits a null value
 	public void printSuperClass(Class objClass, Boolean recurse){
 		System.out.println("Super Class: " + getSClass(objClass));
-		if(recurse == true){
-			SClassLoop(objClass.getSuperclass());	
-		}
+		SClassLoop(objClass.getSuperclass());	
+		
 		
 	}
 	
+	//gets the super class name and returns as a string
 	protected String getSClass(Class objClass){
 		return objClass.getSuperclass().getName();
 	}
 	
+	//iterates through the class's super classes till it has reached the end of the hierarchy
 	protected void SClassLoop(Class superClass){
 		if(superClass.getSuperclass() != null){
 			System.out.println("\tSuper Class: " + getSClass(superClass));
@@ -65,6 +67,7 @@ public class Inspector {
 		}
 	}
 	
+	//prints the interfaces associated with class
 	public void printInterface(Class objClass, Boolean recurse){
 		int a = 0;
 		Class interfaces[] = getInterfaces(objClass);
@@ -83,10 +86,12 @@ public class Inspector {
 		}
 	}
 	
+	//returns an array with interfaces associated with class
 	protected Class[]getInterfaces(Class obj){
 		return obj.getInterfaces();
 	}
 	
+	//prints the method associated with the class
 	public void printMethods(Class objClass, Boolean recurse){
 		int i = 0;
         Method [] mArray = getMethodArray(objClass);
@@ -99,12 +104,14 @@ public class Inspector {
 	    
 	}
 	
-	
+	//returns the array of methods of all visibility
 	protected Method[] getMethodArray(Class objClass){
 		Method mArray[]= objClass.getDeclaredMethods();
 		return mArray;
 	}
 	
+	//returns the methods associated with the class. Including parent methods
+	//associated with it
 	public void getMethods(Method mArray[], Class obj, Boolean recurse){
 		int i = 0;
 		while(mArray.length > i){
@@ -138,6 +145,7 @@ public class Inspector {
 		}
 	}
 	
+	//gets the fields associated with the class
 	public void printFields(Class obj, Boolean recurse){
 		  Field [] fields = getFieldArray(obj);
 	      System.out.println("Fields: ");
@@ -149,6 +157,7 @@ public class Inspector {
 	      
 	}
 	
+	//gets fields associated from class and its parents 
 	public void getFields(Field [] fields,Class obj, Boolean recurse){
 		for(int z =0; z < fields.length; z++){
 	    	  System.out.println("\tName: " + fields[z].getName());
@@ -170,12 +179,13 @@ public class Inspector {
 		}
 		
 	}
+	//returns an array with fields of all visibility. 
 	protected Field[] getFieldArray(Class objClass){
 		Field fArray[]= objClass.getDeclaredFields();
 		return fArray;
 	}
 	
-	
+	//prints out all the constructors associated with the class
 	public void printConstructors(Class objClass){
 		Constructor construct[] = getConstructor(objClass);
 		System.out.println("Constructors:");
@@ -184,16 +194,19 @@ public class Inspector {
 	      }
 	}
 	
+	//returns all constructors associated with the class
 	protected Constructor[] getConstructor(Class objClass){
 		return objClass.getDeclaredConstructors();
 	}
 	
+	//returns modifiers for object type Field
 	public String printModifier(Field fMod){
 		int modCode = fMod.getModifiers();
   	    String modifier = Modifier.toString(modCode);
 		return modifier;
 	}
 	
+	//returns modifiers for object type Method
     public String printModifier(Method mMod){
 	   int modCode = mMod.getModifiers();
 	   String modifier = Modifier.toString(modCode);

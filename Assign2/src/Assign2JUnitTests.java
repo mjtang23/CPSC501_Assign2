@@ -25,8 +25,8 @@ public class Assign2JUnitTests {
 	@Test
 	public void testSuperClass(){
 		Class SuperObjClass = A.getClass().getSuperclass();
-		assertEquals(inspector.getSuperClass(A.getClass()),SuperObjClass);
-		System.out.println(SuperObjClass + " " + inspector.getSuperClass(A.getClass()));
+		assertEquals(inspector.getSClass(A.getClass()),SuperObjClass);
+		System.out.println(SuperObjClass + " " + inspector.getSClass(A.getClass()));
 	}
 	
 	@Test

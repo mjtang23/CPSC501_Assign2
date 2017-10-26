@@ -15,7 +15,7 @@ public class Inspector {
 		
 		
 		printObjectClass(ObjClass, recursive);
-		printSuperClass(ObjClass);
+		printSuperClass(ObjClass, recursive);
 		printInterface(ObjClass);
 		printMethods(ObjClass);   
 		printFields(ObjClass);
@@ -24,22 +24,46 @@ public class Inspector {
 			   }
 	public void printObjectClass(Class objClass, boolean recurse){
 		
-		System.out.println("inside inspector: " + getClass(objClass) + " (recursive = "+recurse+")");
+		System.out.println("inside inspector: " + objClass + " (recursive = "+recurse+")");
 	}
 
 	protected Class getClass(Object obj){
+		if(obj.getClass().isArray()){
+
+			Class temp = obj.getClass();
+			while(temp.getName().charAt(0) == '['){
+			  temp = temp.getComponentType();
+			  System.out.println(temp.getName());
+			  
+			}
+			return temp;
+			
+		}else{
 		return obj.getClass();
+		}
 	}
 	
 	
-	public void printSuperClass(Class objClass){
-		System.out.println("Super Class: " + getSuperClass(getClass(objClass)));
+	public void printSuperClass(Class objClass, Boolean recurse){
+		System.out.println("Super Class: " + getSClass(objClass));
+		if(recurse == true){
+			SClassLoop(objClass.getSuperclass());	
+		}
+		
 	}
 	
-	protected Class getSuperClass(Class objClass){
-		return objClass.getSuperclass();
+	protected String getSClass(Class objClass){
+		return objClass.getSuperclass().getName();
 	}
 	
+	protected void SClassLoop(Class superClass){
+		if(superClass.getSuperclass() != null){
+			System.out.println("\tSuper Class: " + getSClass(superClass));
+			SClassLoop(superClass.getSuperclass());
+		}else{
+			return;
+		}
+	}
 	public void printInterface(Class objClass){
 		int a = 0;
 		Class interfaces[] = getInterfaces(objClass);
@@ -48,10 +72,10 @@ public class Inspector {
 			System.out.println("None");
 		}else{
 		   while(interfaces.length > (a+1)){
-		      System.out.print(interfaces[a]+ "," + " " );
+		      System.out.print(interfaces[a].getClass()+ "," + " " );
 		      a++;
 		   }
-		   System.out.println(interfaces[a]);
+		   System.out.println(interfaces[a].getClass());
 		}
 	}
 	
@@ -87,12 +111,19 @@ public class Inspector {
 				      }
 				      System.out.println(params[y] + ")");
 			      }
-			      System.out.println("Return type: " + mArray[i].getReturnType());
-			      System.out.println("Method Modifier: " + printModifier(mArray[i] )+ "\n");
+			      if(mArray[i].getReturnType().isArray()){
+			    	 System.out.println( "Return Type: " + mArray[i].getClass());
+			      }else{
+			    	  System.out.println(mArray[i].getClass().isArray());
+			    	 System.out.println("Return type: " + mArray[i].getReturnType());
+			      }
+
+			      System.out.println("Method Modifier: " + printModifier(mArray[i])+ "\n");
 			      i++;
 			   }
 	    }
 	}
+	
 	
 	protected Method[] getMethodArray(Class objClass){
 		Method mArray[]= objClass.getDeclaredMethods();
@@ -104,8 +135,17 @@ public class Inspector {
 	      System.out.println("Fields: ");
 	      for(int z =0; z < fields.length; z++){
 	    	  System.out.println("\tName: " + fields[z].getName());
-	    	  System.out.println("\tType: " + fields[z].getType());
+	    	  if(fields[z].getType().isArray()){
+			    	 System.out.println( "\tType: " + fields[z].getClass().getComponentType());
+			      }else{
+			    	 System.out.println("\tType: " + fields[z].getType());
+			      }
+
 	    	  System.out.println("\tField Modifier: " + printModifier(fields[z]) + "\n");
+	    	  if(printModifier(fields[z]) == "public"){
+	    		  System.out.println(fields[z].getClass().getSuperclass());
+	    		  
+	    	  }
 	      }
 	}
 	

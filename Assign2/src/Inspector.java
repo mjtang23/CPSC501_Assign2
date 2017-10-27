@@ -10,23 +10,48 @@ public class Inspector {
 	//Main running code for assignment 2
 	public void inspect(Object obj, boolean recursive){
 		
-		Class ObjClass = getClass(obj);
-		
-		
-		   printObjectClass(ObjClass, recursive);
+		   Class ObjClass = getClass(obj);
+		   printObjectClass(obj, recursive);
 		   printSuperClass(ObjClass, recursive);
 		   printInterface(ObjClass, recursive);
 		   printMethods(ObjClass, recursive);   
 		   printFields(obj, recursive);
 		   printConstructors(ObjClass);
-		  
-
-		
-			    
+		     
 	}
 	//The main inspector class that takes the input from the TestDriver
-	public void printObjectClass(Class objClass, boolean recurse){
-		   System.out.println("inside inspector: " + objClass.getCanonicalName() + " (recursive = "+recurse+")");
+	public void printObjectClass(Object obj, boolean recurse){
+		
+		    if(obj.getClass().isArray()){
+			   Class conType = obj.getClass();
+			   while(conType.isArray()){
+			    	conType = conType.getComponentType();
+			   }
+			
+			   int length = Array.getLength(obj);
+			   System.out.println("inside inspector: " + obj.getClass().getCanonicalName() +  " (recursive = "+recurse+")");
+			   System.out.println("\tLength: "  + length + " Component Type: " + conType);
+			   Object array;
+			   System.out.println("Array elements: ");
+			   for(int k = 0; k < length; k++ ){
+				   try{
+			   	      array = Array.get(obj, k);
+			   	      if(array instanceof Object && recurse ==true){
+			   	    	inspect(array, recurse);
+			   	      }else{
+			   	    	  System.out.println(array);
+			   	      }
+			          
+			         }catch(NullPointerException e){
+				    	System.out.println(e);
+				   }
+				
+			   }
+			
+		    }else{
+			System.out.println("inside inspector: " + obj.getClass().getCanonicalName() + " (recursive = "+recurse+")");
+		   }
+		
 	
 	}
     // Returns the class that we explore further into
@@ -89,7 +114,6 @@ public class Inspector {
 	//prints the method associated with the class
 	public void printMethods(Class objClass, Boolean recurse){
 		int i = 0;
-		
 		while(objClass.isArray()){
 		  objClass = objClass.getComponentType();
 		}
@@ -165,7 +189,7 @@ public class Inspector {
 	public void printFields(Object obj, Boolean recurse){
 		  Field [] fields = obj.getClass().getDeclaredFields();
 		  
-	      System.out.println("Fields: " + obj.getClass());
+	      System.out.println("Fields: ");
 	      if(fields.length == 0){
 	    	  System.out.println("No fields in this class");
 	      }else{
@@ -178,12 +202,17 @@ public class Inspector {
 	public void getFields(Field [] fields,Object obj, Boolean recurse){
 		for(int z =0; z < fields.length; z++){
 			  String fname = fields[z].getName();
-	    	  System.out.println("\tName: " + fname);
+	    	  
 	    	  
 	    	  if(fields[z].getType().isArray()){
-			    	 System.out.println( "\tType: " + fields[z]);
+	    		  Class conType = obj.getClass();
+				   while(conType.isArray()){
+				    	conType = conType.getComponentType();
+				   }
+				   System.out.println("\tName: " + conType);
+				   
 			      }else{
-//			    	  
+			 
 	    	 System.out.println("\tType: " + fields[z].getType());
 			      }
 
@@ -195,15 +224,10 @@ public class Inspector {
     				Field f = cl.getDeclaredField(fname);
     				f.setAccessible(true);
 					Object value = f.get(obj);
-
-
-//					
-					
-					
 					System.out.println("\tValue: " + value + "\n");
 					
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					
 					e.printStackTrace();
 				} 
 				  
@@ -212,10 +236,7 @@ public class Inspector {
 	    		  System.out.println(fields[z].getClass().getSuperclass());  
 	    	  }
 	      }
-//		if(obj.getSuperclass() != null){
-//			Field [] superFields = getFieldArray(obj.getSuperclass());
-//			getFields(superFields, obj.getSuperclass(), recurse);
-//		}
+
 		
 	}
 	//returns an array with fields of all visibility. 
@@ -233,12 +254,6 @@ public class Inspector {
 	      }
 	}
 	
-	public void arrayIterate(Class arryObj){
-		int length = Array.getLength(arryObj);
-		for(int l = 0; l < length; l++){
-			Object objElements = Array.get(arryObj, l);
-		}
-	}
 	
 	//returns all constructors associated with the class
 	public Constructor[] getConstructor(Class objClass){

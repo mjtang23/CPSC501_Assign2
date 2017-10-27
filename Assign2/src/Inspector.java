@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -10,14 +11,13 @@ public class Inspector {
 	public void inspect(Object obj, boolean recursive){
 		
 		Class ObjClass = getClass(obj);
-		Field fields[] = ObjClass.getDeclaredFields();
-		Constructor constructors[] = ObjClass.getDeclaredConstructors();
+		
 		
 		   printObjectClass(ObjClass, recursive);
 		   printSuperClass(ObjClass, recursive);
 		   printInterface(ObjClass, recursive);
 		   printMethods(ObjClass, recursive);   
-		   printFields(ObjClass, recursive);
+		   printFields(obj, recursive);
 		   printConstructors(ObjClass);
 		  
 
@@ -26,22 +26,13 @@ public class Inspector {
 	}
 	//The main inspector class that takes the input from the TestDriver
 	public void printObjectClass(Class objClass, boolean recurse){
-		
-		System.out.println("inside inspector: " + objClass + " (recursive = "+recurse+")");
+		   System.out.println("inside inspector: " + objClass.getCanonicalName() + " (recursive = "+recurse+")");
+	
 	}
     // Returns the class that we explore further into
-	protected Class getClass(Object obj){
-		if(obj.getClass().isArray()){
-			Class temp = obj.getClass();
-			while(temp.getName().charAt(0) == '['){
-			   temp = temp.getComponentType();
-			  
-			}
-			return temp;
-			
-		}else{
+	public Class getClass(Object obj){
 		return obj.getClass();
-		}
+		
 	}
 	
 	//prints the super class and iterates till it hits a null value
@@ -53,12 +44,12 @@ public class Inspector {
 	}
 	
 	//gets the super class name and returns as a string
-	protected String getSClass(Class objClass){
+	public String getSClass(Class objClass){
 		return objClass.getSuperclass().getName();
 	}
 	
 	//iterates through the class's super classes till it has reached the end of the hierarchy
-	protected void SClassLoop(Class superClass){
+	public void SClassLoop(Class superClass){
 		if(superClass.getSuperclass() != null){
 			System.out.println("\tSuper Class: " + getSClass(superClass));
 			SClassLoop(superClass.getSuperclass());
@@ -77,9 +68,13 @@ public class Inspector {
 		}else{
 		   while(interfaces.length > (a+1)){
 		      System.out.print(interfaces[a].getSimpleName()+ "," + " " );
+		      if(interfaces[a].getSuperclass() != null){
+		    	  printInterface(interfaces[a].getSuperclass(), recurse);
+		    	  
+		      }
 		      a++;
 		   }
-		   System.out.println(interfaces[a].getClass());
+		   System.out.println(interfaces[a].getSimpleName());
 		   if(getSClass(objClass) != null){
 			   printInterface(objClass.getSuperclass(), recurse);
 		   }
@@ -87,25 +82,40 @@ public class Inspector {
 	}
 	
 	//returns an array with interfaces associated with class
-	protected Class[]getInterfaces(Class obj){
+	public Class[]getInterfaces(Class obj){
 		return obj.getInterfaces();
 	}
 	
 	//prints the method associated with the class
 	public void printMethods(Class objClass, Boolean recurse){
 		int i = 0;
+		
+		while(objClass.isArray()){
+		  objClass = objClass.getComponentType();
+		}
+			
         Method [] mArray = getMethodArray(objClass);
 		System.out.println("----Methods---- \n" );
 		if(mArray.length == 0){
 			System.out.println("None");
 		}else{
 			getMethods(mArray, objClass, recurse);
+			if(getInterfaces(objClass).length != 0){
+				Class []inter = getInterfaces(objClass);
+				//Takes each interface that is implemented 
+				//to this class and gathers its methods
+				for(int z = 0; z < inter.length; z++){
+					mArray = inter[z].getDeclaredMethods();
+					getMethods(mArray, inter[z], recurse);
+				}
+				
+			}
 		}
 	    
 	}
 	
 	//returns the array of methods of all visibility
-	protected Method[] getMethodArray(Class objClass){
+	public Method[] getMethodArray(Class objClass){
 		Method mArray[]= objClass.getDeclaredMethods();
 		return mArray;
 	}
@@ -119,7 +129,7 @@ public class Inspector {
 		      Class mExceptions[] = mArray[i].getExceptionTypes();
 		      Class params[] = mArray[i].getParameterTypes();
 		      for(int x =0; x < mExceptions.length; x++){
-		    	  System.out.println("\t Exception: "+ mExceptions[x]);
+		    	  System.out.println("\t Exception: "+ mExceptions[x].getSimpleName());
 		      }
 		      System.out.print("Parameters:");
 		      if(params.length == 0){
@@ -130,12 +140,18 @@ public class Inspector {
 		    	  int y = 0;
 		    	  
 			      while((y+1) < params.length){
-			    	  System.out.print(params[y]+ " ,");
+			    	  if(params[y].isArray()){
+			    		
+			    		  System.out.print(params[y].getCanonicalName()+ " ,");  
+			    		  
+			    		 
+			    	  }
+			    	  System.out.print(params[y].getCanonicalName()+ " ,");
 			    	  y++;
 			      }
-			      System.out.println(params[y] + ")");
+			      System.out.println(params[y].getCanonicalName() + ")");
 		      } 
-		      System.out.println("Return type: " + mArray[i].getReturnType());
+		      System.out.println("Return type: " + mArray[i].getReturnType().getCanonicalName());
 		      System.out.println("Method Modifier: " + printModifier(mArray[i])+ "\n");
 		      i++;
 		      
@@ -146,9 +162,10 @@ public class Inspector {
 	}
 	
 	//gets the fields associated with the class
-	public void printFields(Class obj, Boolean recurse){
-		  Field [] fields = getFieldArray(obj);
-	      System.out.println("Fields: ");
+	public void printFields(Object obj, Boolean recurse){
+		  Field [] fields = obj.getClass().getDeclaredFields();
+		  
+	      System.out.println("Fields: " + obj.getClass());
 	      if(fields.length == 0){
 	    	  System.out.println("No fields in this class");
 	      }else{
@@ -158,29 +175,51 @@ public class Inspector {
 	}
 	
 	//gets fields associated from class and its parents 
-	public void getFields(Field [] fields,Class obj, Boolean recurse){
+	public void getFields(Field [] fields,Object obj, Boolean recurse){
 		for(int z =0; z < fields.length; z++){
-	    	  System.out.println("\tName: " + fields[z].getName());
+			  String fname = fields[z].getName();
+	    	  System.out.println("\tName: " + fname);
+	    	  
 	    	  if(fields[z].getType().isArray()){
-			    	 System.out.println( "\tType: " + fields[z].getClass().getComponentType());
+			    	 System.out.println( "\tType: " + fields[z]);
 			      }else{
-			    	 System.out.println("\tType: " + fields[z].getType());
+//			    	  
+	    	 System.out.println("\tType: " + fields[z].getType());
 			      }
 
-	    	  System.out.println("\tField Modifier: " + printModifier(fields[z]) + "\n");
+	    	  System.out.println("\tField Modifier: " + printModifier(fields[z]) );
+	    	  
+		    	  
+				try {
+					Class cl = obj.getClass();
+    				Field f = cl.getDeclaredField(fname);
+    				f.setAccessible(true);
+					Object value = f.get(obj);
+
+
+//					
+					
+					
+					System.out.println("\tValue: " + value + "\n");
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+				  
+
 	    	  if(printModifier(fields[z]) == "public"){
-	    		  System.out.println(fields[z].getClass().getSuperclass());
-	    		  
+	    		  System.out.println(fields[z].getClass().getSuperclass());  
 	    	  }
 	      }
-		if(obj.getSuperclass() != null){
-			Field [] superFields = getFieldArray(obj.getSuperclass());
-			getFields(superFields, obj.getSuperclass(), recurse);
-		}
+//		if(obj.getSuperclass() != null){
+//			Field [] superFields = getFieldArray(obj.getSuperclass());
+//			getFields(superFields, obj.getSuperclass(), recurse);
+//		}
 		
 	}
 	//returns an array with fields of all visibility. 
-	protected Field[] getFieldArray(Class objClass){
+	public Field[] getFieldArray(Class objClass){
 		Field fArray[]= objClass.getDeclaredFields();
 		return fArray;
 	}
@@ -194,8 +233,15 @@ public class Inspector {
 	      }
 	}
 	
+	public void arrayIterate(Class arryObj){
+		int length = Array.getLength(arryObj);
+		for(int l = 0; l < length; l++){
+			Object objElements = Array.get(arryObj, l);
+		}
+	}
+	
 	//returns all constructors associated with the class
-	protected Constructor[] getConstructor(Class objClass){
+	public Constructor[] getConstructor(Class objClass){
 		return objClass.getDeclaredConstructors();
 	}
 	

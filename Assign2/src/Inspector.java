@@ -1,3 +1,5 @@
+/* Marcus Tang 10086730 Assignment 2 Cpsc 501*/
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -164,6 +166,7 @@ public class Inspector {
 		    	  int y = 0;
 		    	  
 			      while((y+1) < params.length){
+			    	  //handles if the parameter is an array
 			    	  if(params[y].isArray()){
 			    		
 			    		  System.out.print(params[y].getCanonicalName()+ " ,");  
@@ -198,18 +201,20 @@ public class Inspector {
 	      
 	}
 	
-	//gets fields associated from class and its parents 
+	//gets fields associated from class and its parents. Does not say what
+	//was inherited, but just included in the fields
 	public void getFields(Field [] fields,Object obj, Boolean recurse){
 		for(int z =0; z < fields.length; z++){
 			  String fname = fields[z].getName();
-	    	  
-	    	  
+			  System.out.println("\tName: " + fname);
+	    	  //handles if field value is an array
 	    	  if(fields[z].getType().isArray()){
 	    		  Class conType = obj.getClass();
 				   while(conType.isArray()){
 				    	conType = conType.getComponentType();
 				   }
 				   System.out.println("\tName: " + conType);
+				   
 				   
 			      }else{
 			 
@@ -224,18 +229,55 @@ public class Inspector {
     				Field f = cl.getDeclaredField(fname);
     				f.setAccessible(true);
 					Object value = f.get(obj);
+					
+					if(value.getClass().isArray()){
+						Class conType = value.getClass();
+						   while(conType.isArray()){
+						    	conType = conType.getComponentType();
+						   }
+						
+						   int length = Array.getLength(obj);
+						   System.out.println("\tName: " + obj.getClass().getCanonicalName() +  " (recursive = "+recurse+")");
+						   System.out.println("\t\tLength: "  + length + " Component Type: " + conType);
+						   Object array;
+						   System.out.println("Array elements: ");
+						   for(int k = 0; k < length; k++ ){
+							   try{
+						   	      array = Array.get(obj, k);
+						   	      if(array instanceof Object && recurse ==true){
+						   	    	inspect(array, recurse);
+						   	      }else{
+						   	    	  System.out.println("\tValue: " + array + "\n");
+						   	      }
+						          
+						         }catch(NullPointerException e){
+							    	System.out.println(e);
+							   }
+						   }
+					}
 					System.out.println("\tValue: " + value + "\n");
 					
-				} catch (Exception e) {
+				} catch (Exception e){
 					
-					e.printStackTrace();
+					System.out.println("\tValue: null \n");
 				} 
-				  
-
-	    	  if(printModifier(fields[z]) == "public"){
-	    		  System.out.println(fields[z].getClass().getSuperclass());  
-	    	  }
+				    
+				
 	      }
+		//gathers the superclass fields here
+		  Class SCFields = obj.getClass().getSuperclass();
+		  while(SCFields != null){
+			  fields = SCFields.getDeclaredFields();
+			  for(int z =0; z < fields.length; z++){
+				  System.out.println("From: " + SCFields);
+				  String fname = fields[z].getName();
+			      System.out.println("\tName: " + fname);
+			      System.out.println("\tType: " + fields[z].getType());
+			      System.out.println("\tField Modifier: " + printModifier(fields[z]) );
+			  }
+		    
+		     SCFields = SCFields.getSuperclass();
+		  }
 
 		
 	}
